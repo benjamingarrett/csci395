@@ -1,3 +1,5 @@
+import scala.annotation.tailrec
+
 object TraditionalMain {
 
   def go = {
@@ -10,8 +12,8 @@ object TraditionalMain {
     val y = "hello" // String literals can only be surrounded by double quotes " characters
     // and not apostrophes ' like in Python
     val z: Any = "some string" // forcing the type to be a supertype of the value assigned
-    val list: Seq[Any] = List(1, "3", true) // lists can have heterogenous types
-    val map = Map(1 -> "one", "two" -> 2) // maps can also have heterogeneous types
+    val list: List[Any] = List(1, "3", true) // lists can have heterogenous types
+    val map: Map[Any, Any] = Map(1 -> "one", "two" -> 2, "three" -> 2) // maps can also have heterogeneous types
     val tuple1: (Int, String) = (1, "one")
     val tuple2: (String, Int) = ("two", 2)
     val listOfTuples: Seq[(Any, Any)] = List(tuple1, tuple2) // I'm putting in the type annotations
@@ -96,7 +98,13 @@ object TraditionalMain {
     val sumRoots100 = sumRoots(100)
     val sumRationals100 = sumRationalExpr(100)
     println(s"Using sumMappingRange: ${sumCubes10}, ${sumRoots100}, ${sumRationals100}")
-
+    println(s"Using isSorted: ${isSorted(Array(1, 2, 3, 4, 5), (x: Int, y: Int) => true)}")
+    println(s"Using fib1: ${fib1(1)}")
+    println(s"Using fib1: ${fib1(2)}")
+    println(s"Using fib1: ${fib1(3)}")
+    println(s"Using fib1: ${fib1(4)}")
+    println(s"Using fib1: ${fib1(5)}")
+    println(s"Using fib1: ${fib2(100000)}") // note this does not blow up the stack
   }
 
   def sumSquaresIterative(n: Int): Int = {
@@ -122,6 +130,35 @@ object TraditionalMain {
     }
 
   def sumMappedRange(f: Int => Int)(n: Int): Int = (1 to n).map(f).sum
+
+  def isSorted[A](a: Array[A], gt: (A, A) => Boolean): Boolean = {
+    def go(n: Int): Boolean = {
+      if (n >= a.length - 1) true
+      else if (gt(a(n), a(n + 1))) false
+      else go(n + 1)
+    }
+
+    go(0)
+  }
+
+  // pattern matching
+  def fib1(n: Int): Int = {
+    n match {
+      case 0 => 0
+      case 1 => 1
+      case _ => fib1(n - 1) + fib1(n - 2)
+    }
+  }
+
+  def fib2(n: Int): Int = {
+    @tailrec
+    def loop(n: Int, prev: Int, cur: Int): Int = {
+      if (n == 0) prev
+      else loop(n - 1, cur, prev + cur)
+    }
+
+    loop(n, 0, 1)
+  }
   def main(args: Array[String]): Unit = {
     println("Hello from main of object")
     go
