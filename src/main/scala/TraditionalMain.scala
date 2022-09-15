@@ -55,6 +55,19 @@ object TraditionalMain {
     loop(n, 0, 1)
   }
 
+  def curry[A,B,C](f: (A,B) => C): A => B => C = a => b => f(a,b)
+
+  def uncurry[A,B,C](f: A => B => C): (A,B) => C = (a,b) => f(a)(b)
+
+  type one_at_a_time[A, B, C] = A => B => C
+  type two_at_a_time[A, B, C] = (A, B) => C
+
+  def curryV2[A, B, C](f: two_at_a_time[A, B, C]): one_at_a_time[A, B, C] = a => b => f(a, b)
+
+  def uncurryV2[A, B, C](f: one_at_a_time[A, B, C]): two_at_a_time[A, B, C] = (a, b) => f(a)(b)
+
+  def compose[A, B, C](f: B => C, g: A => B): A => C = (a: A) => f(g(a))
+
   def partial1[A, B, C](a: A, f: (A, B) => C): B => C = (b: B) => f(a, b)
 
   def ourpartial[A, B, C, D](a: A, f: (A, B, C) => D): B => C => D = (b: B) => (c: C) => f(a, b, c)
