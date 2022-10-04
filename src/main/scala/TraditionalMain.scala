@@ -190,6 +190,7 @@ object TraditionalMain {
     println(s"Simple interest on $$10,000 using partial application: ${interestOnTenK(25,5)}")
     println(s"Simple interest on $$10,000 providing time duration at the last moment: ${twentyFivePercentInterestOnTenK(5)}")
   }
+
   def main(args: Array[String]): Unit = {
     println("Hello from main of object")
     go
