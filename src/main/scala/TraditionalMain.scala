@@ -1,5 +1,5 @@
 import scala.annotation.tailrec
-
+import scala.io.StdIn.readLine
 object TraditionalMain {
 
   def sumSquaresIterative(n: Int): Int = {
@@ -189,6 +189,24 @@ object TraditionalMain {
     println(s"Simple interest on $$10,000 by providing everything at once: ${simpleInterest(10000,25,5)}")
     println(s"Simple interest on $$10,000 using partial application: ${interestOnTenK(25,5)}")
     println(s"Simple interest on $$10,000 providing time duration at the last moment: ${twentyFivePercentInterestOnTenK(5)}")
+    /*val weirdPatternMatch = (A: Foo) match {
+      case "should not match" => 3.4
+      case "did not match" => 5.6
+      case "would never match" => 7.8
+    }
+    println(s"Weird pattern match gives: ${weirdPatternMatch}")*/
+    val flat1 = (x: Int) => if(x == 0) None else Some(1/x)
+    val flat2 = (x: Int) => if(x >= 0) Math.sqrt(x) else None
+    val flat3: List[Int] = List(1,2,3,4,5,6,7,8,9).flatMap(flat1)
+    println("Enter an integer: ")
+    val number: Int = readLine().toInt
+    println(s"You entered: ${number}")
+    println("Enter another integer: ")
+    val number2 = readLine().toInt
+    println(s"You entered: ${number2}")
+    MidtermPracticeExamSolutions
+
+
   }
 
   def main(args: Array[String]): Unit = {
