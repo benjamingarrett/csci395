@@ -198,20 +198,21 @@ object TraditionalMain {
     val flat1 = (x: Int) => if(x == 0) None else Some(1/x)
     val flat2 = (x: Int) => if(x >= 0) Math.sqrt(x) else None
     val flat3: List[Int] = List(1,2,3,4,5,6,7,8,9).flatMap(flat1)
+    /*
     println("Enter an integer: ")
     val number: Int = readLine().toInt
     println(s"You entered: ${number}")
     println("Enter another integer: ")
     val number2 = readLine().toInt
     println(s"You entered: ${number2}")
+     */
     MidtermPracticeExamSolutions
-
-
   }
 
   def main(args: Array[String]): Unit = {
     println("Hello from main of object")
     go
     ParsingDemo.go
+    FlatMapDemo.go
   }
 }

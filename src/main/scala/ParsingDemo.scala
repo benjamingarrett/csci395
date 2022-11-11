@@ -22,10 +22,10 @@ object ParsingDemo {
     val P = fpinscala.parsing.Reference
     import fpinscala.parsing.ReferenceTypes.Parser
     val json: Parser[JSON] = JSON.jsonParser(P)
-    P.run(json)(jsonTxt).flatMap(j => unpack(j)).map(dto => println(dto)) match {
-      case Left(error) => println(s"A parsing error occurred: $error")
-      case _ => ()
-    }
+    val resultOfParsing = P.run(json)(jsonTxt) // this parses JSON input into a JSON object
+    resultOfParsing.flatMap(j => unpack(j)).map(dto => println(dto)).map(_ => ())
+    resultOfParsing.flatMap(j => betterUnpackUsingForComprehension(j)).map(dto => println(dto)).map(_ => ())
+    resultOfParsing.flatMap(j => betterUnpackUsingFlatMap(j)).map(dto => println(dto)).map(_ => ())
   }
 
   case class SampleDTO(
@@ -79,4 +79,57 @@ object ParsingDemo {
       }
       case Nil => r
     }
+
+  def betterUnpackUsingForComprehension(json: JSON): Either[ParseError,SampleDTO] =
+    json match {
+      case jObject: JObject =>
+        for {
+          companyName <- unpackString(jObject, "Company name")
+          ticker <- unpackString(jObject, "Ticker")
+          isActive <- unpackBoolean(jObject, "Active")
+          price <- unpackNumber(jObject, "Price")
+          shares <- unpackNumber(jObject, "Shares outstanding")
+          related <- unpackArray(jObject, "Related companies")
+        } yield SampleDTO(companyName, ticker, isActive, price, shares, related)
+      case _ => Left(ParseError(List((Location("Could not unpack JSON contents"),"Could not unpack JSON contents"))))
+    }
+
+  def betterUnpackUsingFlatMap(json: JSON): Either[ParseError, SampleDTO] = {
+    json match {
+      case jObject: JObject =>
+        unpackString(jObject, "Company name")
+          .flatMap(companyName => unpackString(jObject, "Ticker")
+          .flatMap(ticker => unpackBoolean(jObject, "Active")
+          .flatMap(isActive => unpackNumber(jObject, "Price")
+          .flatMap(price => unpackNumber(jObject, "Shares outstanding")
+          .flatMap(shares => unpackArray(jObject, "Related companies")
+          .map(related => SampleDTO(companyName, ticker, isActive, price, shares, related)))))))
+      case _ => Left(ParseError(List((Location("Could not unpack JSON contents"), "Could not unpack JSON contents"))))
+    }
+  }
+
+  def unpackString(jObject: JObject, key: String): Either[ParseError,String] = jObject.get(key) match {
+    case jString: JString => Right(jString.get)
+    case _ => Left(ParseError(List((Location("Could not unpack ticker"), "ticker"))))
+  }
+
+  def unpackBoolean(jObject: JObject, key: String): Either[ParseError, Boolean] = jObject.get(key) match {
+    case jBool: JBool => Right(jBool.get)
+    case _ => Left(ParseError(List((Location("Could not unpack ticker"), "ticker"))))
+  }
+
+  def unpackNumber(jObject: JObject, key: String): Either[ParseError, Double] = jObject.get(key) match {
+    case jNumber: JNumber => Right(jNumber.get)
+    case _ => Left(ParseError(List((Location("Could not unpack ticker"), "ticker"))))
+  }
+
+  def unpackArray(jObject: JObject, key: String): Either[ParseError, List[String]] = {
+    for {
+      relatedPacked <- jObject.get(key) match {
+        case jArray: JArray => Right(jArray.get)
+        case _ => Left(ParseError(List((Location("Could not unpack related"), "related"))))
+      }
+      related <- unpackList(relatedPacked.toList, Right(List.empty))
+    } yield related
+  }
 }
