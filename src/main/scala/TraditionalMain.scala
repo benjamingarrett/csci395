@@ -214,5 +214,6 @@ object TraditionalMain {
     go
     ParsingDemo.go
     FlatMapDemo.go
+    RandomMoveDemo.go
   }
 }
