@@ -6,7 +6,7 @@ import scala.collection.IterableOnce.iterableOnceExtensionMethods
 
 object ParsingDemo {
 
-  val jsonTxt =
+  val txt1 =
     """
 {
   "Company name" : "Microsoft Corporation",
@@ -17,15 +17,83 @@ object ParsingDemo {
   "Related companies" : [ "HPQ", "IBM", "YHOO", "DELL", "GOOG" ]
 }
 """
+  
+  val jsonTxt2 =
+    """
+{
+  "Active"  : true,
+  "Company name" : "Microsoft Corporation",
+  "Related companies" : [ "HPQ", "IBM", "YHOO", "DELL", "GOOG" ],
+  "Ticker"  : "MSFT",
+  "Shares outstanding" : 8.38e9,
+  "Price"   : 30.66
+}
+"""
+
+  val jsonTxt3 =
+    """
+{
+  "players": {
+    "Rafael": [2,3,4],
+    "Roger": [3,4,5]
+  },
+  "events": [
+    {"Monte Carlo": "April", "Wimbledon": "July", "Roland Garros": "June"},
+    {"Indian Wells": "March", "Australian Open": "January"}
+  ]
+}
+"""
+
+  val jsonTxt4 =
+    """
+{
+  "events": [
+    {"Monte Carlo": "April", "Wimbledon": "July", "Roland Garros": "June"},
+    {"Indian Wells": "March", "Australian Open": "January"}
+  ],
+  "players": {
+    "Roger": [3,4,5],
+    "Rafael": [2,3,4]
+  }
+}
+"""
 
   def go = {
     val P = fpinscala.parsing.Reference
     import fpinscala.parsing.ReferenceTypes.Parser
     val json: Parser[JSON] = JSON.jsonParser(P)
-    val resultOfParsing = P.run(json)(jsonTxt) // this parses JSON input into a JSON object
-    resultOfParsing.flatMap(j => unpack(j)).map(dto => println(dto)).map(_ => ())
-    resultOfParsing.flatMap(j => betterUnpackUsingForComprehension(j)).map(dto => println(dto)).map(_ => ())
-    resultOfParsing.flatMap(j => betterUnpackUsingFlatMap(j)).map(dto => println(dto)).map(_ => ())
+    val resultOfParsing1 = P.run(json)(txt1) // this parses JSON input into a JSON object
+    val res1 = fpinscala.parsing.Reference.run(
+      JSON.jsonParser(fpinscala.parsing.Reference)
+    )(txt1)
+    println("Parsing first text")
+    resultOfParsing1.fold(println,println)
+    println("Deserialize first text")
+    resultOfParsing1.flatMap(j => unpack(j)).map(dto => println(dto)).map(_ => ())
+
+    println("Second way")
+    resultOfParsing1.flatMap(
+      j => betterUnpackUsingForComprehension(j)).map(dto => println(dto)).map(_ => ())
+
+    println("Third way")
+    resultOfParsing1.flatMap(
+      j => betterUnpackUsingFlatMap(j)).map(dto => println(dto)).map(_ => ())
+
+    val resultOfParsing2 = P.run(json)(jsonTxt2)
+    println("Parsing second text")
+    resultOfParsing2.fold(println,println)
+    println("Deserialize second text")
+    resultOfParsing2.flatMap(j => unpack(j)).map(dto => println(dto)).map(_ => ())
+    println("Second way")
+    resultOfParsing2.flatMap(j => betterUnpackUsingForComprehension(j)).map(dto => println(dto)).map(_ => ())
+    println("Third way")
+    resultOfParsing2.flatMap(j => betterUnpackUsingFlatMap(j)).map(dto => println(dto)).map(_ => ())
+    val resultOfParsing3 = P.run(json)(jsonTxt3)
+    println("Parsing third text")
+    resultOfParsing3.fold(println,println)
+    val resultOfParsing4 = P.run(json)(jsonTxt4)
+    println("Parsing fourth text")
+    resultOfParsing4.fold(println,println)
   }
 
   case class SampleDTO(
@@ -35,6 +103,10 @@ object ParsingDemo {
       price: Double,
       sharesOutstanding: Double,
       relatedCompanies: List[String])
+
+  case class SampeDTO2(
+      playerCategories: Map[String,List[Int]],
+      eventCalendar: List[Map[String,String]])
 
   def unpack(json: JSON): Either[ParseError,SampleDTO] = {
     val res = json match {
@@ -132,4 +204,5 @@ object ParsingDemo {
       related <- unpackList(relatedPacked.toList, Right(List.empty))
     } yield related
   }
+
 }

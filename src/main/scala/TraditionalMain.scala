@@ -211,10 +211,10 @@ object TraditionalMain {
 
   def main(args: Array[String]): Unit = {
     println("Hello from main of object")
-    go
+    //go
     ParsingDemo.go
-    FlatMapDemo.go
-    RandomMoveDemo.go
-    FunctorDemo.go
+    //FlatMapDemo.go
+    //RandomMoveDemo.go
+    //FunctorDemo.go
   }
 }

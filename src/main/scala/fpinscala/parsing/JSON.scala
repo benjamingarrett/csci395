@@ -39,7 +39,7 @@ object JSON {
 /**
  * JSON parsing example.
  */
-object JSONExample extends App {
+object JSONExample /*extends App*/ {
 
   val jsonTxt = """
 {
