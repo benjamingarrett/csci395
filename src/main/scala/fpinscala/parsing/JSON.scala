@@ -36,6 +36,83 @@ object JSON {
   }
 }
 
+/*
+ *   S -> (E)
+ *   E -> T | E+T
+ *   T -> F | T*F
+ *   F -> I | (E)
+ *   I -> a | b 
+ */
+
+trait AE
+object AEInstance {
+
+  case object AEPlus extends AE
+  case object AETimes extends AE
+  case class AEBinaryExpression(operator: AE, operand2: AE) extends AE
+  case class AEExpressionList(expressions: List[AE]) extends AE
+  case class AEFactor(expression: AE) extends AE
+  case class AEIdentifier(value: Char) extends AE
+
+  def additiveExpressionParser[Parser[+_]](P: Parsers[Parser]): Parser[AE] = {
+    import P.{string => _,_}
+    implicit def tok(s: String) = token(P.string(s))
+
+    def S: Parser[AE] = surround("(",")")(E.map(v => AEExpressionList(List(v))))
+    def E: Parser[AE] = 
+      (T ** many( product(PL, T).map(v => AEBinaryExpression(AEPlus, v._2)) ))
+        .map(v => AEExpressionList( v._1 :: v._2 )) scope "expression"
+    def T: Parser[AE] = 
+      (F ** many( product(TM, F)
+        .map(v => AEBinaryExpression(AETimes, v._2)) ))
+        .map(v => AEExpressionList( v._1 :: v._2 )) scope "term"
+    def F = I | surround("(",")")(E.map(v => AEFactor(v))) scope "factor"
+    def I = or("a", "b").map(v => AEIdentifier(v.charAt(0))) scope "identifier"
+    def PL = "+".as(AEPlus)
+    def TM = "*".as(AETimes)
+
+    root(whitespace *> S <* whitespace)
+  }
+}
+
+/*
+ *   regular grammar
+ *
+ *   S -> aS | bA
+ *   A -> cA | c
+ *
+ */
+
+trait RG1
+object RG1_Instance {
+
+  case class RG1_Sequence(tokens: List[RG1]) extends RG1
+  case object RG1_A extends RG1
+  case object RG1_B extends RG1
+  case object RG1_C extends RG1
+
+  def RG1Parser[Parser[+_]](P: Parsers[Parser]): Parser[RG1] = {
+    import P.{string => _,_}
+    implicit def tok(s: String) = token(P.string(s))
+
+    def S: Parser[RG1_Sequence] = 
+      surround("(",")")(SS.map(v => RG1_Sequence(List(v))))
+    def SS: Parser[RG1_Sequence] = 
+      or( 
+        product(a, many(SS).map(v => RG1_Sequence(v)))
+          .map(v => RG1_Sequence(v._1 :: v._2.tokens )), 
+        product(b, A)
+          .map(v => RG1_Sequence(v._1 :: v._2.tokens)) 
+      )
+    def A: Parser[RG1_Sequence] = 
+      product(c, many(A).map(v => RG1_Sequence(v))).map(v => RG1_Sequence(v._1 :: v._2.tokens))
+    def a = "a".as(RG1_A)
+    def b = "b".as(RG1_B)
+    def c = "c".as(RG1_C)
+    root(whitespace *> S <* whitespace)
+  }
+}
+
 /**
  * JSON parsing example.
  */
